@@ -11,7 +11,7 @@ func main() {
 	quit := make(chan bool)
 	
 	go send(ch, stop, quit)
-	go receive(ch, stop, quit)
+	go receive(ch, stop)
 	
 	<- quit
 	fmt.Println("Done")
@@ -25,7 +25,7 @@ func send(ch chan int, stop chan chan bool, quit chan bool) {
 	stop <- quit
 }
 
-func receive(ch chan int, stop chan chan bool, quit chan bool) {
+func receive(ch chan int, stop chan chan bool) {
 	for {
 		select {
 			case i := <- ch:
