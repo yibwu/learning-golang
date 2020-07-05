@@ -10,21 +10,26 @@ const (
 	concurrent = 4
 )
 
-func producer(nums []int) <-chan int {
-	out := make(chan int, buffSize)
+type SliceItem struct {
+	Val int
+	Idx int
+}
+
+func producer(nums []int) <-chan SliceItem {
+	out := make(chan SliceItem, buffSize)
 
 	go func() {
 		defer close(out)
-		for _, n := range nums {
-			out <- n
+		for i, n := range nums {
+			out <- SliceItem{Idx: i, Val: n}
 		}
 	}()
 
 	return out
 }
 
-func square(inCh <-chan int) <-chan int {
-	out := make(chan int, buffSize)
+func square(inCh <-chan SliceItem) <-chan SliceItem {
+	out := make(chan SliceItem, buffSize)
 
 	go func() {
 		defer close(out)
@@ -33,8 +38,8 @@ func square(inCh <-chan int) <-chan int {
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
-				for n := range inCh {
-					out <- lambdaFunc(n)
+				for item := range inCh {
+					out <- SliceItem{Idx: item.Idx, Val: lambdaFunc(item.Val)}
 				}
 			}()
 		}
@@ -49,11 +54,13 @@ func lambdaFunc(n int) int {
 }
 
 func main() {
-	in := producer([]int{1, 2, 3, 4})
-	out := square(in)
+	input := []int{1, 2, 3, 4}
+	inCh := producer(input)
+	outCh := square(inCh)
 
-	for n := range out {
-		fmt.Printf("%d ", n)
+	output := make([]int, len(input))
+	for item := range outCh {
+		output[item.Idx] = item.Val
 	}
-	fmt.Println("Done")
+	fmt.Println(output)
 }
