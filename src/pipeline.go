@@ -12,7 +12,7 @@ const (
 
 type SliceItem struct {
 	Val int
-	Idx int
+	Idx int // 保存原始数据的位置，当coroutine乱序消费后恢复顺序时用
 }
 
 func producer(nums []int) <-chan SliceItem {
